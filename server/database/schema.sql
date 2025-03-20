@@ -1,21 +1,36 @@
+CREATE TABLE Category (
+    Id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    Name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Task (
+    Id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    Title VARCHAR(255) NOT NULL,
+    Description TEXT NOT NULL,
+    Status VARCHAR(100) NOT NULL,
+    Due_Date DATE NOT NULL,
+    Category_Id INT NOT NULL, 
+    FOREIGN KEY (Category_Id) REFERENCES Category(Id) ON DELETE CASCADE
+);
 create table user (
   id int unsigned primary key auto_increment not null,
   email varchar(255) not null unique,
   password varchar(255) not null
 );
 
-create table item (
-  id int unsigned primary key auto_increment not null,
-  title varchar(255) not null,
-  user_id int unsigned not null,
-  foreign key(user_id) references user(id)
-);
+INSERT INTO Category (Name) VALUES
+("Work"),
+("Fitness"),
+("Personal"),
+("Health"),
+("Shopping");
 
-insert into user(id, email, password)
-values
-  (1, "jdoe@mail.com", "123456");
+INSERT INTO Task (Title, Description, Status, Due_Date, Category_Id) VALUES
+("Groceries", "Get milk, eggs, and bread", "Pending", "2025-03-25", 5),
+("Finish project", "Complete the final report", "In Progress", "2025-03-26", 1),
+("Call Mommy", "Check in and catch up", "Pending", "2025-03-28", 3),
+("Gym Workout", "Get huge", "Completed", "2025-03-20", 2),
+("Doctor Appointment", "Get checked for back pain", "Pending", "2025-03-29", 4);
 
-insert into item(id, title, user_id)
-values
-  (1, "Stuff", 1),
-  (2, "Doodads", 1);
+USE Checkpoint4Database;
+SELECT * FROM Task;
