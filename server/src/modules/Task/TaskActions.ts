@@ -21,7 +21,7 @@ const browse: RequestHandler = async (req, res, next) => {
 const read: RequestHandler = async (req, res, next) => {
   try {
     // Fetch a specific item based on the provided ID
-    const taskId = Number(req.params.Id);
+    const taskId = Number(req.params.id);
     const task = await TaskRepository.read(taskId);
 
     // If the item is not found, respond with HTTP 404 (Not Found)
@@ -42,7 +42,7 @@ const read: RequestHandler = async (req, res, next) => {
 const edit: RequestHandler = async (req, res, next) => {
   try {
     const task = {
-      Id: Number(req.params.Id),
+      Id: Number(req.params.id),
       Title: req.body.Title,
       Description: req.body.Description,
       Status: req.body.Status,
@@ -92,7 +92,7 @@ const add: RequestHandler = async (req, res, next) => {
 // The D of BREAD - Destroy operation (Here, delete an existing task)
 const destroy: RequestHandler = async (req, res, next) => {
   try {
-    const taskId = Number(req.params.Id);
+    const taskId = Number(req.params.id);
 
     await TaskRepository.delete(taskId);
 
@@ -102,4 +102,13 @@ const destroy: RequestHandler = async (req, res, next) => {
   }
 };
 
-export default { browse, read, edit, add, destroy };
+const destroyAll: RequestHandler = async (req, res, next) => {
+  try {
+    await TaskRepository.deleteAll();
+    res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default { browse, read, edit, add, destroy, destroyAll };

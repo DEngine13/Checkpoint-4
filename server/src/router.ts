@@ -23,6 +23,7 @@ router.get("/api/tasks/:id", TaskActions.read);
 router.post("/api/tasks", TaskActions.add);
 router.put("/api/tasks/:id", TaskActions.edit);
 router.delete("/api/tasks/:id", TaskActions.destroy);
+router.delete("/api/tasks", TaskActions.destroyAll);
 
 /* ************************************************************************* */
 
