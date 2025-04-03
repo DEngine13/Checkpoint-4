@@ -30,7 +30,7 @@ INSERT INTO Task (Title, Description, Status, Due_Date, Category_Id) VALUES
 ("Finish project", "Complete the final report", "In Progress", "2025-03-26", 1),
 ("Call Mommy", "Check in and catch up", "Pending", "2025-03-28", 3),
 ("Gym Workout", "Get huge", "Completed", "2025-03-20", 2),
-("Doctor Appointment", "Get checked for back pain", "Pending", "2025-03-29", 4);
+("Doctor's appointment", "get checked for back pain", "Pending", "2025-04-16", 4);
 
 USE Checkpoint4Database;
 SELECT * FROM Task;

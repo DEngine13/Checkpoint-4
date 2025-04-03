@@ -62,7 +62,7 @@ class TaskRepository {
   // TODO: Implement the update operation to modify an existing item
   async update(Task: Task) {
     const [result] = await databaseClient.query<Result>(
-      "update Task set Id = ?, Title = ?, Description = ?, Status = ?, Due_Date = ?, Category_Id = ?",
+      "update Task set Id = ?, Title = ?, Description = ?, Status = ?, Due_Date = ?, Category_Id = ?, where Id = ?",
       [
         Task.Id,
         Task.Title,
@@ -81,10 +81,15 @@ class TaskRepository {
   // TODO: Implement the delete operation to remove an item by its ID
   async delete(id: number) {
     const [result] = await databaseClient.query<Result>(
-      "delete from Task where id = ?",
+      "DELETE FROM Task WHERE Id = ?",
       [id],
     );
     // Return the rows affected by the operation
+    return result.affectedRows;
+  }
+
+  async deleteAll() {
+    const [result] = await databaseClient.query<Result>("DELETE FROM Task");
     return result.affectedRows;
   }
 }
