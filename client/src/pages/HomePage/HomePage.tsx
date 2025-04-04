@@ -1,6 +1,6 @@
 import "./homePage.css";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLoaderData } from "react-router-dom";
 import {
   deleteAllTasks,
@@ -30,7 +30,19 @@ export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>(loadedTasks);
   const [formData, setFormData] = useState(initialFormState);
   const [error, setError] = useState<string | null>(null);
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editFormData, setEditFormData] = useState(initialFormState);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (isEditDialogOpen && dialogRef.current) {
+      dialogRef.current.showModal();
+    } else if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+  }, [isEditDialogOpen]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -44,37 +56,68 @@ export default function HomePage() {
     }));
   };
 
+  const handleEditInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: name === "Category_Id" ? Number(value) : value,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    const updatedTask = {
+    const newTask = {
       ...formData,
       Due_Date: new Date(formData.Due_Date).toISOString().split("T")[0],
     };
 
     try {
-      if (editingTaskId) {
-        await updateTask(editingTaskId, JSON.stringify(updatedTask));
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.Id === editingTaskId ? { ...task, ...updatedTask } : task,
-          ),
-        );
-        setEditingTaskId(null);
-      } else {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/tasks`,
-          formData,
-        );
-        setTasks((prev) => [
-          { ...updatedTask, Id: response.data.insertId },
-          ...prev,
-        ]);
-      }
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/tasks`,
+        formData,
+      );
+      setTasks((prev) => [{ ...newTask, Id: response.data.insertId }, ...prev]);
       setFormData(initialFormState);
     } catch (err) {
       setError("An error occurred while trying to save the task.");
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingTask) return;
+
+    try {
+      const updatedTask = {
+        ...editFormData,
+        Due_Date: new Date(editFormData.Due_Date).toISOString().split("T")[0],
+      };
+
+      console.error(
+        "Sending update for task:",
+        editingTask.Id,
+        "with data:",
+        updatedTask,
+      );
+
+      await updateTask(editingTask.Id, updatedTask);
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.Id === editingTask.Id ? { ...task, ...updatedTask } : task,
+        ),
+      );
+
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+    } catch (err) {
+      setError("An error occurred while trying to update the task.");
     }
   };
 
@@ -99,6 +142,24 @@ export default function HomePage() {
       );
       alert("Error: cannot delete all tasks");
     }
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setEditFormData({
+      Title: task.Title,
+      Description: task.Description,
+      Status: task.Status,
+      Due_Date: task.Due_Date,
+      Category_Id: task.Category_Id,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingTask(null);
+    setError(null);
   };
 
   return (
@@ -214,8 +275,14 @@ export default function HomePage() {
               <time className="task-due-date">
                 📅 {new Date(task.Due_Date).toLocaleDateString()}
               </time>
-              <div className="task-bottom">
-                {/* <button className="task-edit" type="button" onClick={() => handleEdit(task)}>✏️</button> */}
+              <div className="task-buttons">
+                <button
+                  className="task-edit"
+                  type="button"
+                  onClick={() => handleEdit(task)}
+                >
+                  ✏️
+                </button>
                 <button
                   className="task-delete"
                   type="button"
@@ -228,6 +295,89 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      <dialog ref={dialogRef} className="edit-task-dialog">
+        <form onSubmit={handleEditSubmit}>
+          <h2>Edit Task</h2>
+          <div className="dialog-form">
+            <div className="form-group">
+              <label htmlFor="edit-title">Title</label>
+              <input
+                id="edit-title"
+                type="text"
+                name="Title"
+                value={editFormData.Title}
+                onChange={handleEditInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="edit-description">Description</label>
+              <textarea
+                id="edit-description"
+                name="Description"
+                value={editFormData.Description}
+                onChange={handleEditInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="edit-status">Status</label>
+                <select
+                  id="edit-status"
+                  name="Status"
+                  value={editFormData.Status}
+                  onChange={handleEditInputChange}
+                >
+                  <option value="Pending">Pending ⏳</option>
+                  <option value="In Progress">In Progress 🚧</option>
+                  <option value="Completed">Completed ✅</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="edit-due-date">Due Date</label>
+                <input
+                  id="edit-due-date"
+                  type="date"
+                  name="Due_Date"
+                  value={editFormData.Due_Date}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="edit-category">Category</label>
+                <select
+                  id="edit-category"
+                  name="Category_Id"
+                  value={editFormData.Category_Id}
+                  onChange={handleEditInputChange}
+                >
+                  <option value={1}>Work 💼</option>
+                  <option value={2}>Fitness 🏋️</option>
+                  <option value={3}>Personal 👤</option>
+                  <option value={4}>Health ❤️</option>
+                  <option value={5}>Groceries 🛒</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="dialog-actions">
+            <button type="button" onClick={handleCloseDialog}>
+              Cancel
+            </button>
+            <button type="submit">Update Task</button>
+          </div>
+
+          {error && <div className="dialog-error">{error}</div>}
+        </form>
+      </dialog>
     </main>
   );
 }
