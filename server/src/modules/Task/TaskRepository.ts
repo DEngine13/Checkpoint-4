@@ -62,14 +62,14 @@ class TaskRepository {
   // TODO: Implement the update operation to modify an existing item
   async update(Task: Task) {
     const [result] = await databaseClient.query<Result>(
-      "update Task set Id = ?, Title = ?, Description = ?, Status = ?, Due_Date = ?, Category_Id = ?, where Id = ?",
+      "update Task set Title = ?, Description = ?, Status = ?, Due_Date = ?, Category_Id = ? where Id = ?",
       [
-        Task.Id,
         Task.Title,
         Task.Description,
         Task.Status,
         Task.Due_Date,
         Task.Category_Id,
+        Task.Id,
       ],
     );
     // Return the rows affected by the operation

@@ -39,11 +39,24 @@ const addTask = (newTask: string | undefined) => {
 // Modify a task
 const updateTask = (
   id: number | undefined,
-  updatedTask: string | undefined,
+  updatedTask: {
+    Title: string;
+    Description: string;
+    Status: string;
+    Due_Date: string;
+    Category_Id: number;
+  },
 ) => {
   return axios
     .put(`${import.meta.env.VITE_API_URL}/api/tasks/${id}`, updatedTask)
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error(
+        `An error occurred when trying to update task ${id}:`,
+        error,
+      );
+      throw error;
+    });
 };
 
 // Delete a task
